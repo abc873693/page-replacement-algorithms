@@ -1,11 +1,11 @@
 package com.rainvisitor.homework.pageReplacementAlgorithms.models
 
 import android.graphics.Color
-import android.util.Log
 import java.util.*
 
 class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
     var framesNext: ArrayList<Int> = ArrayList()
+    var empty = true
 
     init {
         label = "Optimal"
@@ -16,31 +16,48 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
 
     override fun execute(referenceStrings: List<String>) {
         referenceStrings.forEachIndexed { order, page ->
-            if (frames.find { it == page } == null) {
+            //Log.e("execute", "order = $order")
+            if (empty) {
                 frames[firstIndex] = page
-                framesNext[firstIndex] = -1
-                for (i in order + 1 until referenceStrings.size) {
-                    if (frames[firstIndex] == referenceStrings[i]) {
-                        framesNext[firstIndex] = i
-                        break
-                    }
-                }
+                framesNext[firstIndex] = findNextIndex(order, referenceStrings)
+                firstIndex++
                 pageFaults++
-                val index = frames.indexOf("")
-                if (index != -1)
-                    firstIndex = index
-                else
-                    for (i in 0 until frames.size) {
-                        if (framesNext[i] == -1 && frames[i] != "") {
-                            firstIndex = i
-                            break
-                        } else if (framesNext[i] > framesNext[firstIndex]) firstIndex = i
-                    }
-                Log.e("execute", "Page Faults")
+                if (firstIndex == frames.size) {
+                    empty = false
+                    firstIndex = 0
+                    findMaxIndex(page, referenceStrings)
+                }
+            } else {
+                val find = frames.indexOf(page)
+                if (find != -1) {
+                    framesNext[find] = findNextIndex(order, referenceStrings)
+                } else {
+                    frames[firstIndex] = page
+                    framesNext[firstIndex] = findNextIndex(order, referenceStrings)
+                    pageFaults++
+                    //Log.e("execute", "Page Faults")
+                }
+                findMaxIndex(page, referenceStrings)
             }
-            Log.e("execute", "$frames page = $page")
+           /* Log.e("execute", "$frames page = $page")
             Log.e("execute", "$framesNext firstIndex = $firstIndex")
-            Log.e("execute", "-----------------------------------")
+            Log.e("execute", "-----------------------------------")*/
         }
+    }
+
+    private fun findNextIndex(currentIndex: Int, referenceStrings: List<String>): Int {
+        for (i in currentIndex + 1 until referenceStrings.size) {
+            if (frames[firstIndex] == referenceStrings[i])
+                return i
+        }
+        return referenceStrings.size
+    }
+
+    private fun findMaxIndex(page: String, referenceStrings: List<String>) {
+        if (framesNext[firstIndex] != referenceStrings.size)
+            for (i in 0 until frames.size) {
+                if (framesNext[i] > framesNext[firstIndex])
+                    if (frames[i] != page) firstIndex = i
+            }
     }
 }
