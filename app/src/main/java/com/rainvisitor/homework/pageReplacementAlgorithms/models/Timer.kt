@@ -3,9 +3,9 @@ package com.rainvisitor.homework.pageReplacementAlgorithms.models
 import android.util.Log
 import java.util.*
 
-class Timer {
-    val start = Date()
-    lateinit var end: Date
+class Timer(private val TAG: String) {
+    private val start = Date()
+    private lateinit var end: Date
     val duration
         get() = Date(end.time - start.time).seconds
 
@@ -15,6 +15,6 @@ class Timer {
 
     fun stop() {
         end = Date()
-        Log.e("duration","$duration")
+        Log.e(TAG, "duration = $duration seconds")
     }
 }

@@ -10,9 +10,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
-import com.rainvisitor.homework.pageReplacementAlgorithms.models.FIFO
-import com.rainvisitor.homework.pageReplacementAlgorithms.models.Optimal
-import com.rainvisitor.homework.pageReplacementAlgorithms.models.PageReplacement
+import com.rainvisitor.homework.pageReplacementAlgorithms.models.*
 import com.rainvisitor.homework.pageReplacementAlgorithms.models.Timer
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
@@ -25,15 +23,18 @@ enum class PageReplacementAlgorithm {
     FIFO, Optimal, EnhancedSecondChance, Rainvisitor
 }
 
-val numberOfFramesArray = arrayOf(20,40,60,80,100)
-val sampleReferenceStrings1 = arrayOf("E","F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
-val sampleReferenceStrings2 = arrayOf("7","0", "1", "2", "0", "3", "0", "4", "2", "3", "0", "3", "2", "1", "2", "0", "1", "7", "0", "1")
+val numberOfFramesArray = arrayOf(3/*, 40, 60, 80, 100*/)
+val sampleReferenceStrings1 =
+    arrayOf("E", "F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
+val sampleReferenceStrings2 =
+    arrayOf("7", "0", "1", "2", "0", "3", "0", "4", "2", "3", "0", "3", "2", "1", "2", "0", "1", "7", "0", "1")
 
 class MainActivity : AppCompatActivity() {
     private val referenceStrings = ArrayList<String>()
 
     private val fifoList = ArrayList<FIFO>()
     private val optimalList = ArrayList<Optimal>()
+    private val secondChanceList = ArrayList<SecondChance>()
 
     private val random = Random()
 
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity() {
         for (numberOfFrames in numberOfFramesArray) {
             fifoList.add(FIFO(numberOfFrames))
             optimalList.add(Optimal(numberOfFrames))
+            secondChanceList.add(SecondChance(numberOfFrames))
         }
     }
 
@@ -64,16 +66,24 @@ class MainActivity : AppCompatActivity() {
         }
         progressBar.visibility = View.VISIBLE
         Thread {
-            val totalTime = Timer()
+            val totalTime = Timer("totalTime")
             for (i in 0 until numberOfFramesArray.size) {
+                val referenceStringsTime = Timer("referenceStringsTime")
                 val referenceStrings: ArrayList<String> = ArrayList()
                 for (j in 1..REFERENCE_TIMES) {
                     referenceStrings.addAll(random())
                 }
-                fifoList[i].execute(referenceStrings.toList())
-                optimalList[i].execute(referenceStrings.toList())
+                referenceStringsTime.stop()
+                val fifoTime = Timer("FIFO")
+                fifoList[i].execute(sampleReferenceStrings1.toList())
+                fifoTime.stop()
+                val optimalTime = Timer("Optimal")
+                optimalList[i].execute(sampleReferenceStrings1.toList())
+                optimalTime.stop()
+                secondChanceList[i].execute(sampleReferenceStrings1.toList())
                 Log.e(TAG, "fifoList ${fifoList[i].pageFaults}")
                 Log.e(TAG, "optimalList ${optimalList[i].pageFaults}")
+                Log.e(TAG, "secondChanceList ${secondChanceList[i].pageFaults}")
                 Log.e(TAG, "referenceStrings ${referenceStrings.size}")
             }
             totalTime.stop()
@@ -94,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         val lines = ArrayList<ILineDataSet>()
         lines.add(getLineData(fifoList))
         lines.add(getLineData(optimalList))
+        lines.add(getLineData(secondChanceList))
         val lineData = LineData(lines)
         lineData.setValueFormatter { value, entry, dataSetIndex, viewPortHandler ->
             String.format(
@@ -116,7 +127,7 @@ class MainActivity : AppCompatActivity() {
         dataSet.setDrawCircleHole(false)
         dataSet.mode = LineDataSet.Mode.HORIZONTAL_BEZIER
         dataSet.setDrawValues(false)
-        //dataSet.setCircleColor(ContextCompat.getColor(mActivity, R.color.red_500))
+        dataSet.setCircleColor(dataObjects.first().color)
 
         //combinedData.setData(new LineData(dataSetB));
         return dataSet
