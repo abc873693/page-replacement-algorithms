@@ -23,7 +23,7 @@ enum class PageReplacementAlgorithm {
     FIFO, Optimal, EnhancedSecondChance, Rainvisitor
 }
 
-val numberOfFramesArray = arrayOf(3/*, 40, 60, 80, 100*/)
+val numberOfFramesArray = arrayOf(20, 40, 60, 80, 100)
 val sampleReferenceStrings1 =
     arrayOf("E", "F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
 val sampleReferenceStrings2 =
@@ -75,12 +75,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 referenceStringsTime.stop()
                 val fifoTime = Timer("FIFO")
-                fifoList[i].execute(sampleReferenceStrings1.toList())
+                fifoList[i].execute(referenceStrings.toList())
                 fifoTime.stop()
                 val optimalTime = Timer("Optimal")
-                optimalList[i].execute(sampleReferenceStrings1.toList())
+                optimalList[i].execute(referenceStrings.toList())
                 optimalTime.stop()
-                secondChanceList[i].execute(sampleReferenceStrings1.toList())
+                val secondChanceTime = Timer("secondChance")
+                secondChanceList[i].execute(referenceStrings.toList())
+                secondChanceTime.stop()
                 Log.e(TAG, "fifoList ${fifoList[i].pageFaults}")
                 Log.e(TAG, "optimalList ${optimalList[i].pageFaults}")
                 Log.e(TAG, "secondChanceList ${secondChanceList[i].pageFaults}")
