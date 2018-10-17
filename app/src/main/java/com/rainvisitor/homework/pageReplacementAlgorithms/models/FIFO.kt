@@ -3,8 +3,8 @@ package com.rainvisitor.homework.pageReplacementAlgorithms.models
 import android.graphics.Color
 
 class FIFO(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
+    override var label = "FIFO"
     init {
-        label = "FIFO"
         color = Color.BLUE
     }
 

@@ -4,6 +4,8 @@ import android.graphics.Color
 import java.util.*
 
 class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
+    override var label = "Optimal"
+
     var framesNext: ArrayList<Int> = ArrayList()
     var empty = true
 
