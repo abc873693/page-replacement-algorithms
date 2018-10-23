@@ -4,9 +4,10 @@ import android.graphics.Color
 import java.util.*
 
 class EnhancesSecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
-    override var label = "Enhances Second Chance"
+    override var label = "ESC"
     var referenceBits: ArrayList<Int> = ArrayList()
     var modifyBits: ArrayList<Int> = ArrayList()
+    var random: Random = Random()
 
     init {
         for (i in 1..numberOfFrames) {
@@ -21,25 +22,31 @@ class EnhancesSecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames
             //Log.e("execute", "order = ${order + 1}")
             val index = frames.indexOf(page)
             if (index == -1) {
-                if (referenceBits[firstIndex] == 0 && modifyBits[firstIndex] == 0) {
-                    if (frames[firstIndex] != "") modifyBits[firstIndex] = 1
-                    frames[firstIndex] = page
-                    referenceBits[firstIndex] = 1
-                    firstIndex++
-                    if (firstIndex == frames.size) firstIndex = 0
-                } else {
-                    while (referenceBits[firstIndex] == 1 && modifyBits[firstIndex] == 1) {
-                        referenceBits[firstIndex] = 0
-                        firstIndex++
-                        if (firstIndex == frames.size) firstIndex = 0
-                        if (referenceBits[firstIndex] == 0) {
+                var find = true
+                while (find) {
+                    if (referenceBits[firstIndex] == 0) {
+                        if (modifyBits[firstIndex] == 0) {
+                            modifyBits[firstIndex] = 1
+                            if (frames[firstIndex] != "") writeDisk++
                             frames[firstIndex] = page
                             referenceBits[firstIndex] = 1
-                            firstIndex++
-                            if (firstIndex == frames.size) firstIndex = 0
-                            break
+                            find = false
+                        } else {
+                            modifyBits[firstIndex] = random.nextInt(2)
+                        }
+                    } else {
+                        if (modifyBits[firstIndex] == 0) {
+                            modifyBits[firstIndex] = 1
+                            if (frames[firstIndex] != "") writeDisk++
+                            frames[firstIndex] = page
+                            referenceBits[firstIndex] = 1
+                            find = false
+                        } else {
+                            referenceBits[firstIndex] = 0
                         }
                     }
+                    firstIndex++
+                    if (firstIndex == frames.size) firstIndex = 0
                 }
                 pageFaults++
             } else referenceBits[index] = 1

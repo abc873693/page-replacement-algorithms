@@ -18,7 +18,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 private const val TAG = "MainActivity"
-private const val REFERENCE_TIMES = 100000
+private const val REFERENCE_MAX_SIZE = 100000
 
 enum class PageReplacementAlgorithm {
     FIFO, Optimal, EnhancedSecondChance, Rainvisitor
@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity() {
     private val referenceStrings = ArrayList<String>()
 
     private val random = Random()
-    private var localityStartIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,37 +56,58 @@ class MainActivity : AppCompatActivity() {
                     if (value > 1000f) "k" else ""
             )
         }
-        randomLineChart.description.text = "Random"
-        randomLineChart.description.textSize = 16f
-        localityLineChart.description.text = "Locality"
-        localityLineChart.description.textSize = 16f
+        randomPFChart.description.text = "Random"
+        randomPFChart.description.textSize = 16f
+        localityPFChart.description.text = "Locality"
+        localityPFChart.description.textSize = 16f
+        mySelectPFChart.description.text = "MySelect"
+        mySelectPFChart.description.textSize = 16f
+        randomRDChart.description.text = "Random"
+        randomRDChart.description.textSize = 16f
+        localityRDChart.description.text = "Locality"
+        localityRDChart.description.textSize = 16f
+        mySelectRDChart.description.text = "MySelect"
+        mySelectRDChart.description.textSize = 16f
         progressBar.visibility = View.VISIBLE
         Thread {
             val referenceStringsTime = Timer("referenceStringsTime")
             val referenceStrings: ArrayList<String> = ArrayList()
-            for (j in 1..REFERENCE_TIMES)
+            while (true) {
                 referenceStrings.addAll(random())
+                if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
+            }
             referenceStringsTime.stop()
-            updateData(execute(referenceStrings), randomLineChart)
+            updateData(execute(referenceStrings), randomPFChart, randomRDChart)
             referenceStrings.clear()
-            val pickSize = random.nextInt(5 + 1)
-            for (j in 1..REFERENCE_TIMES)
-                referenceStrings.addAll(locality(pickSize))
-            updateData(execute(referenceStrings), localityLineChart)
+            val pickSize = random.nextInt(25 + 1) + 25
+            val maxCount = random.nextInt(500 + 1) + 500
+            while (true) {
+                referenceStrings.addAll(locality(pickSize, maxCount))
+                if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
+            }
+            updateData(execute(referenceStrings), localityPFChart, localityRDChart)
+            referenceStrings.clear()
+            while (true) {
+                referenceStrings.addAll(mySelect())
+                if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
+            }
+            updateData(execute(referenceStrings), mySelectPFChart, mySelectRDChart)
             runOnUiThread {
                 progressBar.visibility = View.GONE
             }
         }.start()
     }
 
-    private fun execute(referenceStrings: ArrayList<String>): ArrayList<ILineDataSet> {
+    private fun execute(referenceStrings: ArrayList<String>): Map<String, ArrayList<ILineDataSet>> {
         val fifoList = ArrayList<FIFO>()
         val optimalList = ArrayList<Optimal>()
         val enhancedSecondChanceList = ArrayList<EnhancesSecondChance>()
+        val myWayList = ArrayList<MyWay>()
         for (numberOfFrames in numberOfFramesArray) {
             fifoList.add(FIFO(numberOfFrames))
             optimalList.add(Optimal(numberOfFrames))
             enhancedSecondChanceList.add(EnhancesSecondChance(numberOfFrames))
+            myWayList.add(MyWay(numberOfFrames))
         }
         val totalTime = Timer("totalTime")
         for (i in 0 until numberOfFramesArray.size) {
@@ -101,15 +121,24 @@ class MainActivity : AppCompatActivity() {
             val secondChanceTime = Timer("EnhancedSecondChance")
             enhancedSecondChanceList[i].execute(referenceStrings.toList())
             secondChanceTime.stop()
+            val myWayTime = Timer("EnhancedSecondChance")
+            myWayList[i].execute(referenceStrings.toList())
+            myWayTime.stop()
             Log.e(TAG, "fifoList ${fifoList[i].pageFaults}")
             Log.e(TAG, "optimalList ${optimalList[i].pageFaults}")
             Log.e(TAG, "enhancedSecondChanceList ${enhancedSecondChanceList[i].pageFaults}")
+            Log.e(TAG, "myWayTime ${myWayList[i].pageFaults}")
         }
         totalTime.stop()
-        val lines = ArrayList<ILineDataSet>()
-        lines.add(getLineData(fifoList))
-        lines.add(getLineData(optimalList))
-        lines.add(getLineData(enhancedSecondChanceList))
+        val lines = hashMapOf("PF" to ArrayList<ILineDataSet>(), "RD" to ArrayList<ILineDataSet>())
+        lines["PF"]?.add(getPFData(fifoList))
+        lines["PF"]?.add(getPFData(optimalList))
+        lines["PF"]?.add(getPFData(enhancedSecondChanceList))
+        lines["PF"]?.add(getPFData(myWayList))
+        lines["RD"]?.add(getRDData(fifoList))
+        lines["RD"]?.add(getRDData(optimalList))
+        lines["RD"]?.add(getRDData(enhancedSecondChanceList))
+        lines["RD"]?.add(getRDData(myWayList))
         return lines
     }
 
@@ -119,33 +148,34 @@ class MainActivity : AppCompatActivity() {
         return referenceStrings.subList(startIndex, startIndex + pickSize)
     }
 
-    private fun locality(pickSize: Int): MutableList<String> {
-        val shift = random.nextInt(16)
-        localityStartIndex += (shift - 8)
-        if (localityStartIndex < 0)
-            localityStartIndex = 0
-        else if (localityStartIndex + pickSize >= referenceStrings.size)
-            localityStartIndex = referenceStrings.size - pickSize
-        return referenceStrings.subList(localityStartIndex, localityStartIndex + pickSize)
+    private fun locality(pickSize: Int, loopCount: Int): MutableList<String> {
+        val startIndex = random.nextInt(referenceStrings.size - pickSize)
+        val list: MutableList<String> = ArrayList()
+        for (i in 1..loopCount)
+            list.add(referenceStrings[random.nextInt(startIndex + pickSize + 1)])
+        val randomIndex = random.nextInt(referenceStrings.size)
+        list.add(referenceStrings[randomIndex])
+        return list
     }
 
-    private fun updateData(iLineDataSetList: ArrayList<ILineDataSet>, lineChart: LineChart) {
-        val lineData = LineData(iLineDataSetList)
-        lineData.setValueFormatter { value, entry, dataSetIndex, viewPortHandler ->
-            String.format(
-                    "%,d %s",
-                    if (value > 1000f) (value / 1000f).toInt() else value.toInt(),
-                    if (value > 1000f) "k" else ""
-            )
-        }
-        lineChart.data = lineData
-        lineChart.notifyDataSetChanged()
-        lineChart.invalidate() // refresh
+    private fun mySelect(): MutableList<String> {
+        val block = random.nextInt(10)
+        val startIndex = block * 50
+        return referenceStrings.subList(startIndex, startIndex + 50)
+    }
+
+    private fun updateData(iLineDataSetList: Map<String, ArrayList<ILineDataSet>>, PFChart: LineChart, RDChart: LineChart) {
+        PFChart.data = LineData(iLineDataSetList["PF"])
+        PFChart.notifyDataSetChanged()
+        PFChart.invalidate() // refresh
+        RDChart.data = LineData(iLineDataSetList["RD"])
+        RDChart.notifyDataSetChanged()
+        RDChart.invalidate() // refresh
     }
 
     @SuppressLint("DefaultLocale")
-    private fun getLineData(dataObjects: List<PageReplacement>): ILineDataSet {
-        val dataSet = LineDataSet(getLineEntry(dataObjects), dataObjects.first().label)
+    private fun getPFData(dataObjects: List<PageReplacement>): ILineDataSet {
+        val dataSet = LineDataSet(getPFEntry(dataObjects), dataObjects.first().label)
         dataSet.color = dataObjects.first().color
         dataSet.lineWidth = 2.5f
         dataSet.setDrawCircles(true)
@@ -158,11 +188,36 @@ class MainActivity : AppCompatActivity() {
         return dataSet
     }
 
-    private fun getLineEntry(dataObjects: List<PageReplacement>): List<Entry> {
+    @SuppressLint("DefaultLocale")
+    private fun getRDData(dataObjects: List<PageReplacement>): ILineDataSet {
+        val dataSet = LineDataSet(getRDEntry(dataObjects), dataObjects.first().label)
+        dataSet.color = dataObjects.first().color
+        dataSet.lineWidth = 2.5f
+        dataSet.setDrawCircles(true)
+        dataSet.setDrawCircleHole(false)
+        dataSet.mode = LineDataSet.Mode.HORIZONTAL_BEZIER
+        dataSet.setDrawValues(false)
+        dataSet.setCircleColor(dataObjects.first().color)
+
+        //combinedData.setData(new LineData(dataSetB));
+        return dataSet
+    }
+
+    private fun getPFEntry(dataObjects: List<PageReplacement>): List<Entry> {
         val entries = ArrayList<Entry>()
         for (data in dataObjects) {
             data.apply {
                 entries.add(Entry(numberOfFrames.toFloat(), pageFaults.toFloat()))
+            }
+        }
+        return entries
+    }
+
+    private fun getRDEntry(dataObjects: List<PageReplacement>): List<Entry> {
+        val entries = ArrayList<Entry>()
+        for (data in dataObjects) {
+            data.apply {
+                entries.add(Entry(numberOfFrames.toFloat(), writeDisk.toFloat()))
             }
         }
         return entries

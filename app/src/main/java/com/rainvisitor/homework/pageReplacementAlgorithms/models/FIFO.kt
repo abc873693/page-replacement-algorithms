@@ -4,6 +4,7 @@ import android.graphics.Color
 
 class FIFO(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
     override var label = "FIFO"
+
     init {
         color = Color.BLUE
     }
@@ -11,6 +12,7 @@ class FIFO(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
     override fun execute(referenceStrings: List<String>) {
         referenceStrings.forEach { page ->
             if (frames.find { it == page } == null) {
+                if (frames[firstIndex] != "") writeDisk++
                 frames[firstIndex] = page
                 pageFaults++
                 firstIndex++
