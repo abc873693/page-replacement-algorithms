@@ -12,7 +12,7 @@ class FIFO(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
     override fun execute(referenceStrings: List<String>) {
         referenceStrings.forEach { page ->
             if (frames.find { it == page } == null) {
-                if (frames[firstIndex] != "") writeDisk++
+                if (random.nextBoolean()) writeDisk++
                 frames[firstIndex] = page
                 pageFaults++
                 firstIndex++

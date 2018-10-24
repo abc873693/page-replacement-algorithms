@@ -20,7 +20,7 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
         referenceStrings.forEachIndexed { order, page ->
             //Log.e("execute", "order = $order")
             if (empty) {
-                if (frames[firstIndex] != "") writeDisk++
+                if (random.nextBoolean()) writeDisk++
                 frames[firstIndex] = page
                 framesNext[firstIndex] = findNextIndex(order, referenceStrings)
                 firstIndex++
@@ -35,7 +35,7 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
                 if (find != -1) {
                     framesNext[find] = findNextIndex(order, referenceStrings)
                 } else {
-                    if (frames[firstIndex] != "") writeDisk++
+                    if (random.nextBoolean()) writeDisk++
                     frames[firstIndex] = page
                     framesNext[firstIndex] = findNextIndex(order, referenceStrings)
                     pageFaults++

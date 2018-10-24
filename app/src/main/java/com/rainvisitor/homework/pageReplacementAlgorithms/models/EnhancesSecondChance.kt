@@ -7,7 +7,6 @@ class EnhancesSecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames
     override var label = "ESC"
     var referenceBits: ArrayList<Int> = ArrayList()
     var modifyBits: ArrayList<Int> = ArrayList()
-    var random: Random = Random()
 
     init {
         for (i in 1..numberOfFrames) {
@@ -26,24 +25,16 @@ class EnhancesSecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames
                 while (find) {
                     if (referenceBits[firstIndex] == 0) {
                         if (modifyBits[firstIndex] == 0) {
-                            modifyBits[firstIndex] = 1
-                            if (frames[firstIndex] != "") writeDisk++
+                            modifyBits[firstIndex] = random.nextInt(2)
                             frames[firstIndex] = page
                             referenceBits[firstIndex] = 1
                             find = false
                         } else {
-                            modifyBits[firstIndex] = random.nextInt(2)
+                            writeDisk++
+                            modifyBits[firstIndex] = 0
                         }
                     } else {
-                        if (modifyBits[firstIndex] == 0) {
-                            modifyBits[firstIndex] = 1
-                            if (frames[firstIndex] != "") writeDisk++
-                            frames[firstIndex] = page
-                            referenceBits[firstIndex] = 1
-                            find = false
-                        } else {
-                            referenceBits[firstIndex] = 0
-                        }
+                        referenceBits[firstIndex] = 0
                     }
                     firstIndex++
                     if (firstIndex == frames.size) firstIndex = 0

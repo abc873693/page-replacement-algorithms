@@ -7,7 +7,6 @@ class MyWay(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
     override var label = "My way"
     var referenceBits: ArrayList<Int> = ArrayList()
     var modifyBits: ArrayList<Int> = ArrayList()
-    var random: Random = Random()
 
     init {
         for (i in 1..numberOfFrames) {
@@ -24,7 +23,7 @@ class MyWay(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
             if (index == -1) {
                 if (referenceBits[firstIndex] == 0 && modifyBits[firstIndex] == 0) {
                     if (frames[firstIndex] != "") modifyBits[firstIndex] = 1
-                    if (frames[firstIndex] != "") writeDisk++
+                    if (random.nextBoolean()) writeDisk++
                     frames[firstIndex] = page
                     referenceBits[firstIndex] = 1
                     firstIndex++
@@ -35,7 +34,7 @@ class MyWay(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
                         firstIndex++
                         if (firstIndex == frames.size) firstIndex = 0
                         if (referenceBits[firstIndex] == 0) {
-                            if (frames[firstIndex] != "") writeDisk++
+                            if (random.nextBoolean()) writeDisk++
                             frames[firstIndex] = page
                             referenceBits[firstIndex] = 1
                             firstIndex++
@@ -45,7 +44,7 @@ class MyWay(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
                     }
                 }
                 pageFaults++
-            } else referenceBits[index] = 1
+            } else referenceBits[index] = 0
         }
     }
 }

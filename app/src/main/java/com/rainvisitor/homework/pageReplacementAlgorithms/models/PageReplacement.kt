@@ -10,6 +10,7 @@ open class PageReplacement(val numberOfFrames: Int) {
     var firstIndex = 0
     open var label = ""
     var color = Color.BLUE
+    var random: Random = Random()
 
     init {
         for (i in 1..numberOfFrames)
