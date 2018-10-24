@@ -26,9 +26,9 @@ enum class PageReplacementAlgorithm {
 
 val numberOfFramesArray = arrayOf(20, 40, 60, 80, 100)
 val sampleReferenceStrings1 =
-        arrayOf("E", "F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
+    arrayOf("E", "F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
 val sampleReferenceStrings2 =
-        arrayOf("7", "0", "1", "2", "0", "3", "0", "4", "2", "3", "0", "3", "2", "1", "2", "0", "1", "7", "0", "1")
+    arrayOf("7", "0", "1", "2", "0", "3", "0", "4", "2", "3", "0", "3", "2", "1", "2", "0", "1", "7", "0", "1")
 
 class MainActivity : AppCompatActivity() {
     private val referenceStrings = ArrayList<String>()
@@ -51,9 +51,9 @@ class MainActivity : AppCompatActivity() {
         val combinedData = CombinedData()
         combinedData.setValueFormatter { value, entry, dataSetIndex, viewPortHandler ->
             String.format(
-                    "%,d %s",
-                    if (value > 1000f) (value / 1000f).toInt() else value.toInt(),
-                    if (value > 1000f) "k" else ""
+                "%,d %s",
+                if (value > 1000f) (value / 1000f).toInt() else value.toInt(),
+                if (value > 1000f) "k" else ""
             )
         }
         randomPFChart.description.text = "Random"
@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
         progressBar.visibility = View.VISIBLE
         Thread {
             val referenceStringsTime = Timer("referenceStringsTime")
-            val referenceStrings: ArrayList<String> = ArrayList()
+            val referenceStrings: ArrayList<Page> = ArrayList()
             while (true) {
                 referenceStrings.addAll(random())
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun execute(referenceStrings: ArrayList<String>): Map<String, ArrayList<ILineDataSet>> {
+    private fun execute(referenceStrings: ArrayList<Page>): Map<String, ArrayList<ILineDataSet>> {
         val fifoList = ArrayList<FIFO>()
         val optimalList = ArrayList<Optimal>()
         val enhancedSecondChanceList = ArrayList<EnhancesSecondChance>()
@@ -126,7 +126,10 @@ class MainActivity : AppCompatActivity() {
             myWayTime.stop()
             Log.e(TAG, "fifoList ${fifoList[i].pageFaults} ${fifoList[i].writeDisk}")
             Log.e(TAG, "optimalList ${optimalList[i].pageFaults} ${optimalList[i].writeDisk}")
-            Log.e(TAG, "enhancedSecondChanceList ${enhancedSecondChanceList[i].pageFaults} ${enhancedSecondChanceList[i].writeDisk}")
+            Log.e(
+                TAG,
+                "enhancedSecondChanceList ${enhancedSecondChanceList[i].pageFaults} ${enhancedSecondChanceList[i].writeDisk}"
+            )
             Log.e(TAG, "myWayTime ${myWayList[i].pageFaults} ${myWayList[i].writeDisk}")
         }
         totalTime.stop()
@@ -142,29 +145,39 @@ class MainActivity : AppCompatActivity() {
         return lines
     }
 
-    private fun random(): MutableList<String> {
+    private fun random(): MutableList<Page> {
         val pickSize = random.nextInt(5 + 1)
         val startIndex = random.nextInt(referenceStrings.size - pickSize)
-        return referenceStrings.subList(startIndex, startIndex + pickSize)
-    }
-
-    private fun locality(pickSize: Int, loopCount: Int): MutableList<String> {
-        val startIndex = random.nextInt(referenceStrings.size - pickSize)
-        val list: MutableList<String> = ArrayList()
-        for (i in 1..loopCount)
-            list.add(referenceStrings[random.nextInt(startIndex + pickSize + 1)])
-        val randomIndex = random.nextInt(referenceStrings.size)
-        list.add(referenceStrings[randomIndex])
+        val list: MutableList<Page> = ArrayList()
+        for (i in startIndex until startIndex + pickSize)
+            list.add(Page(referenceStrings[i], random.nextBoolean()))
         return list
     }
 
-    private fun mySelect(): MutableList<String> {
-        val block = random.nextInt(10)
-        val startIndex = block * 50
-        return referenceStrings.subList(startIndex, startIndex + 50)
+    private fun locality(pickSize: Int, loopCount: Int): MutableList<Page> {
+        val startIndex = random.nextInt(referenceStrings.size - pickSize)
+        val list: MutableList<Page> = ArrayList()
+        for (i in 1..loopCount)
+            list.add(Page(referenceStrings[random.nextInt(startIndex + pickSize + 1)], random.nextBoolean()))
+        val randomIndex = random.nextInt(referenceStrings.size)
+        list.add(Page(referenceStrings[randomIndex], random.nextBoolean()))
+        return list
     }
 
-    private fun updateData(iLineDataSetList: Map<String, ArrayList<ILineDataSet>>, PFChart: LineChart, RDChart: LineChart) {
+    private fun mySelect(): MutableList<Page> {
+        val block = random.nextInt(10)
+        val startIndex = block * 50
+        val list: MutableList<Page> = ArrayList()
+        for (i in startIndex until startIndex + 50)
+            list.add(Page(referenceStrings[i], random.nextBoolean()))
+        return list
+    }
+
+    private fun updateData(
+        iLineDataSetList: Map<String, ArrayList<ILineDataSet>>,
+        PFChart: LineChart,
+        RDChart: LineChart
+    ) {
         PFChart.data = LineData(iLineDataSetList["PF"])
         PFChart.notifyDataSetChanged()
         PFChart.invalidate() // refresh

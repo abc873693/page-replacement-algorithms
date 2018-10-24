@@ -16,10 +16,10 @@ class EnhancesSecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames
         color = Color.GREEN
     }
 
-    override fun execute(referenceStrings: List<String>) {
+    override fun execute(referenceStrings: List<Page>) {
         referenceStrings.forEachIndexed { order, page ->
             //Log.e("execute", "order = ${order + 1}")
-            val index = frames.indexOf(page)
+            val index = findPage(page)
             if (index == -1) {
                 var find = true
                 while (find) {
@@ -30,7 +30,7 @@ class EnhancesSecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames
                             referenceBits[firstIndex] = 1
                             find = false
                         } else {
-                            writeDisk++
+                            if (frames[firstIndex].dirtyBit) writeDisk++
                             modifyBits[firstIndex] = 0
                         }
                     } else {

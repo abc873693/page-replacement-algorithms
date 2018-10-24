@@ -16,14 +16,14 @@ class MyWay(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
         color = Color.RED
     }
 
-    override fun execute(referenceStrings: List<String>) {
+    override fun execute(referenceStrings: List<Page>) {
         referenceStrings.forEachIndexed { order, page ->
             //Log.e("execute", "order = ${order + 1}")
-            val index = frames.indexOf(page)
+            val index = findPage(page)
             if (index == -1) {
                 if (referenceBits[firstIndex] == 0 && modifyBits[firstIndex] == 0) {
-                    if (frames[firstIndex] != "") modifyBits[firstIndex] = 1
-                    if (random.nextBoolean()) writeDisk++
+                    if (frames[firstIndex].name != "") modifyBits[firstIndex] = 1
+                    if (frames[firstIndex].dirtyBit) writeDisk++
                     frames[firstIndex] = page
                     referenceBits[firstIndex] = 1
                     firstIndex++
@@ -34,7 +34,7 @@ class MyWay(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
                         firstIndex++
                         if (firstIndex == frames.size) firstIndex = 0
                         if (referenceBits[firstIndex] == 0) {
-                            if (random.nextBoolean()) writeDisk++
+                            if (frames[firstIndex].dirtyBit) writeDisk++
                             frames[firstIndex] = page
                             referenceBits[firstIndex] = 1
                             firstIndex++
