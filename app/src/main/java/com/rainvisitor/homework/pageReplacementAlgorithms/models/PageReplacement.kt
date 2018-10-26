@@ -7,6 +7,7 @@ open class PageReplacement(val numberOfFrames: Int) {
     var frames: ArrayList<Page> = ArrayList()
     var pageFaults = 0
     var writeDisk = 0
+    var interrupt = 0
     var firstIndex = 0
     open var label = ""
     var color = Color.BLUE

@@ -26,6 +26,7 @@ class EnhancesSecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames
                     if (referenceBits[firstIndex] == 0) {
                         if (modifyBits[firstIndex] == 0) {
                             modifyBits[firstIndex] = if (frames[firstIndex].dirtyBit) 1 else 0
+                            if (frames[firstIndex].dirtyBit && !page.dirtyBit) interrupt++
                             frames[firstIndex] = page
                             referenceBits[firstIndex] = 1
                             find = false

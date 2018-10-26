@@ -32,6 +32,7 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
                 }
             } else {
                 val find = findPage(page)
+                interrupt++
                 if (find != -1) {
                     framesNext[find] = findNextIndex(order, referenceStrings)
                 } else {
@@ -43,9 +44,9 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
                 }
                 findMaxIndex(page, referenceStrings)
             }
-           /* Log.e("execute", "$frames page = $page")
-            Log.e("execute", "$framesNext firstIndex = $firstIndex")
-            Log.e("execute", "-----------------------------------")*/
+            /* Log.e("execute", "$frames page = $page")
+             Log.e("execute", "$framesNext firstIndex = $firstIndex")
+             Log.e("execute", "-----------------------------------")*/
         }
     }
 

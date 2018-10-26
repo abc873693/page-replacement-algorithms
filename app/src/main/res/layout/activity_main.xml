@@ -20,20 +20,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/textTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Page Replacement\n\nPage Fault"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:text="Page Replacement\n\nPage Fault" />
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/randomPFChart"
@@ -42,10 +41,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
-                android:padding="5dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/textTitle" />
+                android:padding="5dp" />
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/localityPFChart"
@@ -55,10 +51,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
-                android:padding="5dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/randomPFChart" />
+                android:padding="5dp" />
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/mySelectPFChart"
@@ -68,10 +61,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
-                android:padding="5dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/localityPFChart" />
+                android:padding="5dp" />
 
             <TextView
                 android:id="@+id/textWriteDiskTitle"
@@ -79,10 +69,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Write Disk"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/mySelectPFChart" />
+                android:text="Write Disk" />
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/randomRDChart"
@@ -91,10 +78,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
-                android:padding="5dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/textWriteDiskTitle" />
+                android:padding="5dp" />
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/localityRDChart"
@@ -104,10 +88,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
-                android:padding="5dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/randomRDChart" />
+                android:padding="5dp" />
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/mySelectRDChart"
@@ -117,13 +98,45 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
-                android:padding="5dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/localityRDChart" />
+                android:padding="5dp" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/textInterruptTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Interrupt" />
 
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/randomInterruptChart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:padding="5dp" />
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/localityInterruptChart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:padding="5dp" />
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/mySelectInterruptChart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:padding="5dp" />
+        </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

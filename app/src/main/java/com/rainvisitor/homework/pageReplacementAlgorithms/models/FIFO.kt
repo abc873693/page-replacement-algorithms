@@ -14,6 +14,7 @@ class FIFO(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
             val index = findPage(page)
             if (index == -1) {
                 if (frames[firstIndex].dirtyBit) writeDisk++
+                if (frames[firstIndex].dirtyBit && !page.dirtyBit) interrupt++
                 frames[firstIndex] = page
                 pageFaults++
                 firstIndex++

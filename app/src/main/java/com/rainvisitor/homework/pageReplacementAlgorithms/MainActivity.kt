@@ -26,9 +26,9 @@ enum class PageReplacementAlgorithm {
 
 val numberOfFramesArray = arrayOf(20, 40, 60, 80, 100)
 val sampleReferenceStrings1 =
-    arrayOf("E", "F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
+        arrayOf("E", "F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
 val sampleReferenceStrings2 =
-    arrayOf("7", "0", "1", "2", "0", "3", "0", "4", "2", "3", "0", "3", "2", "1", "2", "0", "1", "7", "0", "1")
+        arrayOf("7", "0", "1", "2", "0", "3", "0", "4", "2", "3", "0", "3", "2", "1", "2", "0", "1", "7", "0", "1")
 
 class MainActivity : AppCompatActivity() {
     private val referenceStrings = ArrayList<String>()
@@ -51,9 +51,9 @@ class MainActivity : AppCompatActivity() {
         val combinedData = CombinedData()
         combinedData.setValueFormatter { value, entry, dataSetIndex, viewPortHandler ->
             String.format(
-                "%,d %s",
-                if (value > 1000f) (value / 1000f).toInt() else value.toInt(),
-                if (value > 1000f) "k" else ""
+                    "%,d %s",
+                    if (value > 1000f) (value / 1000f).toInt() else value.toInt(),
+                    if (value > 1000f) "k" else ""
             )
         }
         randomPFChart.description.text = "Random"
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
             }
             referenceStringsTime.stop()
-            updateData(execute(referenceStrings), randomPFChart, randomRDChart)
+            updateData(execute(referenceStrings), randomPFChart, randomRDChart, randomInterruptChart)
             referenceStrings.clear()
             val pickSize = random.nextInt(25 + 1) + 25
             val maxCount = random.nextInt(500 + 1) + 500
@@ -85,13 +85,13 @@ class MainActivity : AppCompatActivity() {
                 referenceStrings.addAll(locality(pickSize, maxCount))
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
             }
-            updateData(execute(referenceStrings), localityPFChart, localityRDChart)
+            updateData(execute(referenceStrings), localityPFChart, localityRDChart, localityInterruptChart)
             referenceStrings.clear()
             while (true) {
                 referenceStrings.addAll(mySelect())
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
             }
-            updateData(execute(referenceStrings), mySelectPFChart, mySelectRDChart)
+            updateData(execute(referenceStrings), mySelectPFChart, mySelectRDChart, mySelectInterruptChart)
             runOnUiThread {
                 progressBar.visibility = View.GONE
             }
@@ -124,16 +124,16 @@ class MainActivity : AppCompatActivity() {
             val myWayTime = Timer("EnhancedSecondChance")
             myWayList[i].execute(referenceStrings.toList())
             myWayTime.stop()
-            Log.e(TAG, "fifoList ${fifoList[i].pageFaults} ${fifoList[i].writeDisk}")
-            Log.e(TAG, "optimalList ${optimalList[i].pageFaults} ${optimalList[i].writeDisk}")
+            Log.e(TAG, "fifoList ${fifoList[i].pageFaults} ${fifoList[i].writeDisk} ${fifoList[i].interrupt}")
+            Log.e(TAG, "optimalList ${optimalList[i].pageFaults} ${optimalList[i].writeDisk} ${optimalList[i].interrupt}")
             Log.e(
-                TAG,
-                "enhancedSecondChanceList ${enhancedSecondChanceList[i].pageFaults} ${enhancedSecondChanceList[i].writeDisk}"
+                    TAG,
+                    "enhancedSecondChanceList ${enhancedSecondChanceList[i].pageFaults} ${enhancedSecondChanceList[i].writeDisk} ${enhancedSecondChanceList[i].interrupt}"
             )
-            Log.e(TAG, "myWayTime ${myWayList[i].pageFaults} ${myWayList[i].writeDisk}")
+            Log.e(TAG, "myWayTime ${myWayList[i].pageFaults} ${myWayList[i].writeDisk} ${myWayList[i].interrupt}")
         }
         totalTime.stop()
-        val lines = hashMapOf("PF" to ArrayList<ILineDataSet>(), "RD" to ArrayList<ILineDataSet>())
+        val lines = hashMapOf("PF" to ArrayList<ILineDataSet>(), "Interrupt" to ArrayList<ILineDataSet>(), "RD" to ArrayList<ILineDataSet>())
         lines["PF"]?.add(getPFData(fifoList))
         lines["PF"]?.add(getPFData(optimalList))
         lines["PF"]?.add(getPFData(enhancedSecondChanceList))
@@ -142,6 +142,10 @@ class MainActivity : AppCompatActivity() {
         lines["RD"]?.add(getRDData(optimalList))
         lines["RD"]?.add(getRDData(enhancedSecondChanceList))
         lines["RD"]?.add(getRDData(myWayList))
+        lines["Interrupt"]?.add(getInterruptData(fifoList))
+        lines["Interrupt"]?.add(getInterruptData(optimalList))
+        lines["Interrupt"]?.add(getInterruptData(enhancedSecondChanceList))
+        lines["Interrupt"]?.add(getInterruptData(myWayList))
         return lines
     }
 
@@ -174,9 +178,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateData(
-        iLineDataSetList: Map<String, ArrayList<ILineDataSet>>,
-        PFChart: LineChart,
-        RDChart: LineChart
+            iLineDataSetList: Map<String, ArrayList<ILineDataSet>>,
+            PFChart: LineChart,
+            RDChart: LineChart,
+            InterruptChart: LineChart
     ) {
         PFChart.data = LineData(iLineDataSetList["PF"])
         PFChart.notifyDataSetChanged()
@@ -184,6 +189,9 @@ class MainActivity : AppCompatActivity() {
         RDChart.data = LineData(iLineDataSetList["RD"])
         RDChart.notifyDataSetChanged()
         RDChart.invalidate() // refresh
+        InterruptChart.data = LineData(iLineDataSetList["Interrupt"])
+        InterruptChart.notifyDataSetChanged()
+        InterruptChart.invalidate() // refresh
     }
 
     @SuppressLint("DefaultLocale")
@@ -216,6 +224,21 @@ class MainActivity : AppCompatActivity() {
         return dataSet
     }
 
+    @SuppressLint("DefaultLocale")
+    private fun getInterruptData(dataObjects: List<PageReplacement>): ILineDataSet {
+        val dataSet = LineDataSet(getInterruptEntry(dataObjects), dataObjects.first().label)
+        dataSet.color = dataObjects.first().color
+        dataSet.lineWidth = 2.5f
+        dataSet.setDrawCircles(true)
+        dataSet.setDrawCircleHole(false)
+        dataSet.mode = LineDataSet.Mode.HORIZONTAL_BEZIER
+        dataSet.setDrawValues(false)
+        dataSet.setCircleColor(dataObjects.first().color)
+
+        //combinedData.setData(new LineData(dataSetB));
+        return dataSet
+    }
+
     private fun getPFEntry(dataObjects: List<PageReplacement>): List<Entry> {
         val entries = ArrayList<Entry>()
         for (data in dataObjects) {
@@ -231,6 +254,16 @@ class MainActivity : AppCompatActivity() {
         for (data in dataObjects) {
             data.apply {
                 entries.add(Entry(numberOfFrames.toFloat(), writeDisk.toFloat()))
+            }
+        }
+        return entries
+    }
+
+    private fun getInterruptEntry(dataObjects: List<PageReplacement>): List<Entry> {
+        val entries = ArrayList<Entry>()
+        for (data in dataObjects) {
+            data.apply {
+                entries.add(Entry(numberOfFrames.toFloat(), interrupt.toFloat()))
             }
         }
         return entries
