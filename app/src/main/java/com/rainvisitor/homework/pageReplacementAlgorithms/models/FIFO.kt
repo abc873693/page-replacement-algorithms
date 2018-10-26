@@ -9,10 +9,12 @@ class FIFO(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
         color = Color.BLUE
     }
 
-    override fun execute(referenceStrings: List<String>) {
+    override fun execute(referenceStrings: List<Page>) {
         referenceStrings.forEach { page ->
-            if (frames.find { it == page } == null) {
-                if (random.nextBoolean()) writeDisk++
+            val index = findPage(page)
+            if (index == -1) {
+                if (frames[firstIndex].dirtyBit) writeDisk++
+                if (frames[firstIndex].dirtyBit && !page.dirtyBit) interrupt++
                 frames[firstIndex] = page
                 pageFaults++
                 firstIndex++

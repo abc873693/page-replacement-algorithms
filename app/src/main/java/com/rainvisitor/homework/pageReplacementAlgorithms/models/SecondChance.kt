@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.util.Log
 import java.util.*
 
+@Deprecated("Fuck")
 class SecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
     override var label = "Second Chance"
     var referenceBits: ArrayList<Int> = ArrayList()
@@ -15,7 +16,7 @@ class SecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
         color = Color.GREEN
     }
 
-    override fun execute(referenceStrings: List<String>) {
+    override fun execute(referenceStrings: List<Page>) {
         referenceStrings.forEachIndexed { order, page ->
             Log.e("execute", "order = ${order + 1}")
             /*val find = referenceBits.indexOf(0)

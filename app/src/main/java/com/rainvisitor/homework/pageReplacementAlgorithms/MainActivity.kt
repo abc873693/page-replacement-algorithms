@@ -71,13 +71,13 @@ class MainActivity : AppCompatActivity() {
         progressBar.visibility = View.VISIBLE
         Thread {
             val referenceStringsTime = Timer("referenceStringsTime")
-            val referenceStrings: ArrayList<String> = ArrayList()
+            val referenceStrings: ArrayList<Page> = ArrayList()
             while (true) {
                 referenceStrings.addAll(random())
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
             }
             referenceStringsTime.stop()
-            updateData(execute(referenceStrings), randomPFChart, randomRDChart)
+            updateData(execute(referenceStrings), randomPFChart, randomRDChart, randomInterruptChart)
             referenceStrings.clear()
             val pickSize = random.nextInt(25 + 1) + 25
             val maxCount = random.nextInt(500 + 1) + 500
@@ -85,20 +85,20 @@ class MainActivity : AppCompatActivity() {
                 referenceStrings.addAll(locality(pickSize, maxCount))
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
             }
-            updateData(execute(referenceStrings), localityPFChart, localityRDChart)
+            updateData(execute(referenceStrings), localityPFChart, localityRDChart, localityInterruptChart)
             referenceStrings.clear()
             while (true) {
                 referenceStrings.addAll(mySelect())
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
             }
-            updateData(execute(referenceStrings), mySelectPFChart, mySelectRDChart)
+            updateData(execute(referenceStrings), mySelectPFChart, mySelectRDChart, mySelectInterruptChart)
             runOnUiThread {
                 progressBar.visibility = View.GONE
             }
         }.start()
     }
 
-    private fun execute(referenceStrings: ArrayList<String>): Map<String, ArrayList<ILineDataSet>> {
+    private fun execute(referenceStrings: ArrayList<Page>): Map<String, ArrayList<ILineDataSet>> {
         val fifoList = ArrayList<FIFO>()
         val optimalList = ArrayList<Optimal>()
         val enhancedSecondChanceList = ArrayList<EnhancesSecondChance>()
@@ -124,13 +124,16 @@ class MainActivity : AppCompatActivity() {
             val myWayTime = Timer("EnhancedSecondChance")
             myWayList[i].execute(referenceStrings.toList())
             myWayTime.stop()
-            Log.e(TAG, "fifoList ${fifoList[i].pageFaults} ${fifoList[i].writeDisk}")
-            Log.e(TAG, "optimalList ${optimalList[i].pageFaults} ${optimalList[i].writeDisk}")
-            Log.e(TAG, "enhancedSecondChanceList ${enhancedSecondChanceList[i].pageFaults} ${enhancedSecondChanceList[i].writeDisk}")
-            Log.e(TAG, "myWayTime ${myWayList[i].pageFaults} ${myWayList[i].writeDisk}")
+            Log.e(TAG, "fifoList ${fifoList[i].pageFaults} ${fifoList[i].writeDisk} ${fifoList[i].interrupt}")
+            Log.e(TAG, "optimalList ${optimalList[i].pageFaults} ${optimalList[i].writeDisk} ${optimalList[i].interrupt}")
+            Log.e(
+                    TAG,
+                    "enhancedSecondChanceList ${enhancedSecondChanceList[i].pageFaults} ${enhancedSecondChanceList[i].writeDisk} ${enhancedSecondChanceList[i].interrupt}"
+            )
+            Log.e(TAG, "myWayTime ${myWayList[i].pageFaults} ${myWayList[i].writeDisk} ${myWayList[i].interrupt}")
         }
         totalTime.stop()
-        val lines = hashMapOf("PF" to ArrayList<ILineDataSet>(), "RD" to ArrayList<ILineDataSet>())
+        val lines = hashMapOf("PF" to ArrayList<ILineDataSet>(), "Interrupt" to ArrayList<ILineDataSet>(), "RD" to ArrayList<ILineDataSet>())
         lines["PF"]?.add(getPFData(fifoList))
         lines["PF"]?.add(getPFData(optimalList))
         lines["PF"]?.add(getPFData(enhancedSecondChanceList))
@@ -139,38 +142,56 @@ class MainActivity : AppCompatActivity() {
         lines["RD"]?.add(getRDData(optimalList))
         lines["RD"]?.add(getRDData(enhancedSecondChanceList))
         lines["RD"]?.add(getRDData(myWayList))
+        lines["Interrupt"]?.add(getInterruptData(fifoList))
+        lines["Interrupt"]?.add(getInterruptData(optimalList))
+        lines["Interrupt"]?.add(getInterruptData(enhancedSecondChanceList))
+        lines["Interrupt"]?.add(getInterruptData(myWayList))
         return lines
     }
 
-    private fun random(): MutableList<String> {
+    private fun random(): MutableList<Page> {
         val pickSize = random.nextInt(5 + 1)
         val startIndex = random.nextInt(referenceStrings.size - pickSize)
-        return referenceStrings.subList(startIndex, startIndex + pickSize)
-    }
-
-    private fun locality(pickSize: Int, loopCount: Int): MutableList<String> {
-        val startIndex = random.nextInt(referenceStrings.size - pickSize)
-        val list: MutableList<String> = ArrayList()
-        for (i in 1..loopCount)
-            list.add(referenceStrings[random.nextInt(startIndex + pickSize + 1)])
-        val randomIndex = random.nextInt(referenceStrings.size)
-        list.add(referenceStrings[randomIndex])
+        val list: MutableList<Page> = ArrayList()
+        for (i in startIndex until startIndex + pickSize)
+            list.add(Page(referenceStrings[i], random.nextBoolean()))
         return list
     }
 
-    private fun mySelect(): MutableList<String> {
-        val block = random.nextInt(10)
-        val startIndex = block * 50
-        return referenceStrings.subList(startIndex, startIndex + 50)
+    private fun locality(pickSize: Int, loopCount: Int): MutableList<Page> {
+        val startIndex = random.nextInt(referenceStrings.size - pickSize)
+        val list: MutableList<Page> = ArrayList()
+        for (i in 1..loopCount)
+            list.add(Page(referenceStrings[random.nextInt(startIndex + pickSize + 1)], random.nextBoolean()))
+        val randomIndex = random.nextInt(referenceStrings.size)
+        list.add(Page(referenceStrings[randomIndex], random.nextBoolean()))
+        return list
     }
 
-    private fun updateData(iLineDataSetList: Map<String, ArrayList<ILineDataSet>>, PFChart: LineChart, RDChart: LineChart) {
+    private fun mySelect(): MutableList<Page> {
+        val block = random.nextInt(10)
+        val startIndex = block * 50
+        val list: MutableList<Page> = ArrayList()
+        for (i in startIndex until startIndex + 50)
+            list.add(Page(referenceStrings[i], random.nextBoolean()))
+        return list
+    }
+
+    private fun updateData(
+            iLineDataSetList: Map<String, ArrayList<ILineDataSet>>,
+            PFChart: LineChart,
+            RDChart: LineChart,
+            InterruptChart: LineChart
+    ) {
         PFChart.data = LineData(iLineDataSetList["PF"])
         PFChart.notifyDataSetChanged()
         PFChart.invalidate() // refresh
         RDChart.data = LineData(iLineDataSetList["RD"])
         RDChart.notifyDataSetChanged()
         RDChart.invalidate() // refresh
+        InterruptChart.data = LineData(iLineDataSetList["Interrupt"])
+        InterruptChart.notifyDataSetChanged()
+        InterruptChart.invalidate() // refresh
     }
 
     @SuppressLint("DefaultLocale")
@@ -203,6 +224,21 @@ class MainActivity : AppCompatActivity() {
         return dataSet
     }
 
+    @SuppressLint("DefaultLocale")
+    private fun getInterruptData(dataObjects: List<PageReplacement>): ILineDataSet {
+        val dataSet = LineDataSet(getInterruptEntry(dataObjects), dataObjects.first().label)
+        dataSet.color = dataObjects.first().color
+        dataSet.lineWidth = 2.5f
+        dataSet.setDrawCircles(true)
+        dataSet.setDrawCircleHole(false)
+        dataSet.mode = LineDataSet.Mode.HORIZONTAL_BEZIER
+        dataSet.setDrawValues(false)
+        dataSet.setCircleColor(dataObjects.first().color)
+
+        //combinedData.setData(new LineData(dataSetB));
+        return dataSet
+    }
+
     private fun getPFEntry(dataObjects: List<PageReplacement>): List<Entry> {
         val entries = ArrayList<Entry>()
         for (data in dataObjects) {
@@ -218,6 +254,16 @@ class MainActivity : AppCompatActivity() {
         for (data in dataObjects) {
             data.apply {
                 entries.add(Entry(numberOfFrames.toFloat(), writeDisk.toFloat()))
+            }
+        }
+        return entries
+    }
+
+    private fun getInterruptEntry(dataObjects: List<PageReplacement>): List<Entry> {
+        val entries = ArrayList<Entry>()
+        for (data in dataObjects) {
+            data.apply {
+                entries.add(Entry(numberOfFrames.toFloat(), interrupt.toFloat()))
             }
         }
         return entries

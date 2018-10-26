@@ -16,11 +16,11 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
             framesNext.add(0)
     }
 
-    override fun execute(referenceStrings: List<String>) {
+    override fun execute(referenceStrings: List<Page>) {
         referenceStrings.forEachIndexed { order, page ->
             //Log.e("execute", "order = $order")
             if (empty) {
-                if (random.nextBoolean()) writeDisk++
+                if (frames[firstIndex].dirtyBit) writeDisk++
                 frames[firstIndex] = page
                 framesNext[firstIndex] = findNextIndex(order, referenceStrings)
                 firstIndex++
@@ -31,11 +31,12 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
                     findMaxIndex(page, referenceStrings)
                 }
             } else {
-                val find = frames.indexOf(page)
+                val find = findPage(page)
+                interrupt++
                 if (find != -1) {
                     framesNext[find] = findNextIndex(order, referenceStrings)
                 } else {
-                    if (random.nextBoolean()) writeDisk++
+                    if (frames[firstIndex].dirtyBit) writeDisk++
                     frames[firstIndex] = page
                     framesNext[firstIndex] = findNextIndex(order, referenceStrings)
                     pageFaults++
@@ -43,25 +44,25 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
                 }
                 findMaxIndex(page, referenceStrings)
             }
-           /* Log.e("execute", "$frames page = $page")
-            Log.e("execute", "$framesNext firstIndex = $firstIndex")
-            Log.e("execute", "-----------------------------------")*/
+            /* Log.e("execute", "$frames page = $page")
+             Log.e("execute", "$framesNext firstIndex = $firstIndex")
+             Log.e("execute", "-----------------------------------")*/
         }
     }
 
-    private fun findNextIndex(currentIndex: Int, referenceStrings: List<String>): Int {
+    private fun findNextIndex(currentIndex: Int, referenceStrings: List<Page>): Int {
         for (i in currentIndex + 1 until referenceStrings.size) {
-            if (frames[firstIndex] == referenceStrings[i])
+            if (frames[firstIndex].name == referenceStrings[i].name)
                 return i
         }
         return referenceStrings.size
     }
 
-    private fun findMaxIndex(page: String, referenceStrings: List<String>) {
+    private fun findMaxIndex(page: Page, referenceStrings: List<Page>) {
         if (framesNext[firstIndex] != referenceStrings.size)
             for (i in 0 until frames.size) {
                 if (framesNext[i] > framesNext[firstIndex])
-                    if (frames[i] != page) firstIndex = i
+                    if (frames[i].name != page.name) firstIndex = i
             }
     }
 }
