@@ -32,7 +32,21 @@
                 android:layout_gravity="center"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Page Replacement\n\nPage Fault" />
+                android:text="Page Replacement" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewItem"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/textPageFaultTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Page Fault" />
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/randomPFChart"
@@ -67,6 +81,7 @@
                 android:id="@+id/textWriteDiskTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:text="Write Disk" />
@@ -104,6 +119,7 @@
                 android:id="@+id/textInterruptTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:text="Interrupt" />

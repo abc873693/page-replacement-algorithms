@@ -30,7 +30,7 @@ class EnhancesSecondChance(numberOfFrames: Int) : PageReplacement(numberOfFrames
                             frames[firstIndex] = page
                             referenceBits[firstIndex] = 1
                             find = false
-                        } else {
+                        } else if (random.nextBoolean()) {
                             if (frames[firstIndex].dirtyBit) writeDisk++
                             modifyBits[firstIndex] = 0
                         }

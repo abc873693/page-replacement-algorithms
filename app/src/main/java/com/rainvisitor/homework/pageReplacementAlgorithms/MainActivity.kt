@@ -5,12 +5,14 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.CombinedData
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
+import com.rainvisitor.homework.pageReplacementAlgorithms.adapter.ItemAdapter
 import com.rainvisitor.homework.pageReplacementAlgorithms.models.*
 import com.rainvisitor.homework.pageReplacementAlgorithms.models.Timer
 import kotlinx.android.synthetic.main.activity_main.*
@@ -35,6 +37,8 @@ class MainActivity : AppCompatActivity() {
 
     private val random = Random()
 
+    private lateinit var itemAdapter: ItemAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -48,6 +52,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setView() {
+
+        itemAdapter = ItemAdapter(this)
+        recyclerViewItem.layoutManager = LinearLayoutManager(this)
+        recyclerViewItem.adapter = itemAdapter
         val combinedData = CombinedData()
         combinedData.setValueFormatter { value, entry, dataSetIndex, viewPortHandler ->
             String.format(
@@ -76,6 +84,9 @@ class MainActivity : AppCompatActivity() {
                 referenceStrings.addAll(random())
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
             }
+            /*sampleReferenceStrings1.forEach { i ->
+                referenceStrings.add(Page(i, random.nextBoolean()))
+            }*/
             referenceStringsTime.stop()
             updateData(execute(referenceStrings), randomPFChart, randomRDChart, randomInterruptChart)
             referenceStrings.clear()
@@ -134,6 +145,21 @@ class MainActivity : AppCompatActivity() {
         }
         totalTime.stop()
         val lines = hashMapOf("PF" to ArrayList<ILineDataSet>(), "Interrupt" to ArrayList<ILineDataSet>(), "RD" to ArrayList<ILineDataSet>())
+        var pd = 0
+        var rd = 0
+        var interrupt = 0
+        numberOfFramesArray.forEachIndexed { i, _ ->
+            if (fifoList[i].pageFaults > myWayList[i].pageFaults)
+                pd++
+            if (fifoList[i].writeDisk > myWayList[i].writeDisk)
+                rd++
+            if (fifoList[i].interrupt > myWayList[i].interrupt)
+                interrupt++
+        }
+        runOnUiThread {
+            textTitle.append("\n${pd} ${rd} ${interrupt}")
+            itemAdapter.append(fifoList, optimalList, enhancedSecondChanceList, myWayList)
+        }
         lines["PF"]?.add(getPFData(fifoList))
         lines["PF"]?.add(getPFData(optimalList))
         lines["PF"]?.add(getPFData(enhancedSecondChanceList))

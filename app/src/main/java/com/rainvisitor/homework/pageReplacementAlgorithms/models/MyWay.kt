@@ -21,32 +21,34 @@ class MyWay(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
             //Log.e("execute", "order = ${order + 1}")
             val index = findPage(page)
             if (index == -1) {
-                if (referenceBits[firstIndex] == 0) {
-                    if (frames[firstIndex].name != "") modifyBits[firstIndex] = 1
-                    if (frames[firstIndex].dirtyBit) writeDisk++
-                    frames[firstIndex] = page
-                    referenceBits[firstIndex] = 1
-                    modifyBits[firstIndex] = if (frames[firstIndex].dirtyBit) 1 else 0
+                var count = 0
+                var num = if (frames[firstIndex].name == "") 0 else frames[firstIndex].name.toInt()
+                while (Math.abs(num - page.name.toInt()) < frames.size) {
                     firstIndex++
                     if (firstIndex == frames.size) firstIndex = 0
-                } else {
-                    while (referenceBits[firstIndex] == 1 && modifyBits[firstIndex] == 1) {
-                        referenceBits[firstIndex] = 0
-                        firstIndex++
-                        if (firstIndex == frames.size) firstIndex = 0
-                        if (referenceBits[firstIndex] == 0) {
-                            if (frames[firstIndex].dirtyBit) writeDisk++
-                            frames[firstIndex] = page
-                            referenceBits[firstIndex] = 1
-                            modifyBits[firstIndex] = if (frames[firstIndex].dirtyBit) 1 else 0
-                            firstIndex++
-                            if (firstIndex == frames.size) firstIndex = 0
-                            break
+                    num = if (frames[firstIndex].name == "") 0 else frames[firstIndex].name.toInt()
+                    count++
+                    if (count == frames.size) {
+                        frames.forEachIndexed { i, _ ->
+                            modifyBits[i] = 0
+                            writeDisk++
                         }
+                        interrupt++
+                        break
                     }
                 }
+                if (modifyBits[firstIndex] == 1) {
+                    writeDisk++
+                    interrupt++
+                }
+                frames[firstIndex] = page
+                modifyBits[firstIndex] = if (page.dirtyBit) 1 else 0
                 pageFaults++
+                //Log.e("execute", "pageFaults")
             } else referenceBits[index] = 0
+            /*Log.e("execute", "$frames page = ${page.name}")
+            Log.e("execute", "$modifyBits firstIndex = $firstIndex")
+            Log.e("execute", "-----------------------------------")*/
         }
     }
 }
