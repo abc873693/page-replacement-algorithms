@@ -20,12 +20,9 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 private const val TAG = "MainActivity"
+//最多不能超過10萬
 private const val REFERENCE_MAX_SIZE = 100000
-
-enum class PageReplacementAlgorithm {
-    FIFO, Optimal, EnhancedSecondChance, Rainvisitor
-}
-
+//選取frame 20, 40, 60, 80, 100
 val numberOfFramesArray = arrayOf(20, 40, 60, 80, 100)
 val sampleReferenceStrings1 =
     arrayOf("E", "F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
@@ -207,33 +204,42 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun random(): MutableList<Page> {
+        //亂數每次選取連續序列的大小(1~5)
         val pickSize = random.nextInt(5 + 1)
+        //亂數起始index
         val startIndex = random.nextInt(referenceStrings.size - pickSize)
         val list: MutableList<Page> = ArrayList()
+        //依序放入Reference String
         for (i in startIndex until startIndex + pickSize)
             list.add(Page(referenceStrings[i], random.nextBoolean()))
         return list
     }
 
     private fun locality(pickSize: Int, loopCount: Int): MutableList<Page> {
+        //亂數起始index pickSize為一開始就給定 區域序列固定大小(25~50) loopCount代表這次區間的總數
         val startIndex = random.nextInt(referenceStrings.size - pickSize)
         val list: MutableList<Page> = ArrayList()
-        for (i in 1..loopCount)
+        //重複loopCount次 從起始索引的範圍 隨機取得變數 放入Reference String
+        for (i in 0..loopCount)
             list.add(Page(referenceStrings[random.nextInt(pickSize + 1) + startIndex], random.nextBoolean()))
+        //在兩兩locality 插入一個Random page
         val randomIndex = random.nextInt(referenceStrings.size)
         list.add(Page(referenceStrings[randomIndex], random.nextBoolean()))
         return list
     }
 
     private fun mySelect(): MutableList<Page> {
+        //將序列切割成10等分
         val block = random.nextInt(10)
         val startIndex = block * 50
         val list: MutableList<Page> = ArrayList()
+        //每次亂數選取該區間的連續page 放入Reference String
         for (i in startIndex until startIndex + 50)
             list.add(Page(referenceStrings[i], random.nextBoolean()))
         return list
     }
 
+    //以下皆為圖表呈現
     private fun updateData(
         iLineDataSetList: Map<String, ArrayList<ILineDataSet>>,
         PFChart: LineChart,

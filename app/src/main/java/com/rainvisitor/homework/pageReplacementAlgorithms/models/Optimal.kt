@@ -16,26 +16,34 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
     }
 
     override fun execute(referenceStrings: List<Page>) {
-        var empty = true
+        //建立是否frame還有空的判斷變數
+        var isEmpty = true
+        //依序讀取Reference Strings
         referenceStrings.forEachIndexed { order, page ->
             //Log.e("execute", "order = $order")
-            if (empty) {
+            if (isEmpty) {
+                //若還有空的時 則照FIFO依序取代 並找到其page下一次出現的index
                 if (frames[firstIndex].dirtyBit) writeDisk++
                 frames[firstIndex] = page
                 framesNext[firstIndex] = findNextIndex(order, page, referenceStrings)
                 firstIndex++
-                //pageFaults++
+                pageFaults++
+                //若firstIndex等於frame的大小代表全部都已填滿則isEmpty設為false
                 if (firstIndex == frames.size) {
-                    empty = false
+                    isEmpty = false
                     firstIndex = 0
                 }
             } else {
+                //尋找page是否存在於frame中
                 val find = findPage(page)
+                //每次尋找下一次的位址代表有發生interrupt
                 interrupt++
                 if (find != -1) {
                     framesNext[find] = findNextIndex(order, page, referenceStrings)
                 } else {
-                    findMaxIndex(page, referenceStrings)
+                    //找到最晚會出現的page的索引
+                    findMaxIndex(referenceStrings)
+                    //將page取代並檢查Disk I/O
                     if (frames[firstIndex].dirtyBit) writeDisk++
                     frames[firstIndex] = page
                     framesNext[firstIndex] = findNextIndex(order, page, referenceStrings)
@@ -49,6 +57,7 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
         }
     }
 
+    //找到page下一次出現的index
     private fun findNextIndex(currentIndex: Int, page: Page, referenceStrings: List<Page>): Int {
         for (i in currentIndex + 1 until referenceStrings.size) {
             if (page.name == referenceStrings[i].name)
@@ -57,7 +66,8 @@ class Optimal(numberOfFrames: Int) : PageReplacement(numberOfFrames) {
         return referenceStrings.size
     }
 
-    private fun findMaxIndex(page: Page, referenceStrings: List<Page>) {
+    //找到frame中最晚出現page給定 下次要替換的index
+    private fun findMaxIndex(referenceStrings: List<Page>) {
         if (framesNext[firstIndex] != referenceStrings.size)
             for (i in 0 until frames.size) {
                 if (framesNext[i] > framesNext[firstIndex])
