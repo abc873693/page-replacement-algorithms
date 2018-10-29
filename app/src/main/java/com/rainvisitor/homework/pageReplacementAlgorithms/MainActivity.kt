@@ -28,9 +28,9 @@ enum class PageReplacementAlgorithm {
 
 val numberOfFramesArray = arrayOf(20, 40, 60, 80, 100)
 val sampleReferenceStrings1 =
-        arrayOf("E", "F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
+    arrayOf("E", "F", "A", "B", "F", "C", "F", "D", "B", "C", "F", "C", "B", "A", "B")
 val sampleReferenceStrings2 =
-        arrayOf("7", "0", "1", "2", "0", "3", "0", "4", "2", "3", "0", "3", "2", "1", "2", "0", "1", "7", "0", "1")
+    arrayOf("7", "0", "1", "2", "0", "3", "0", "4", "2", "3", "0", "3", "2", "1", "2", "0", "1", "7", "0", "1")
 
 class MainActivity : AppCompatActivity() {
     private val referenceStrings = ArrayList<String>()
@@ -59,9 +59,9 @@ class MainActivity : AppCompatActivity() {
         val combinedData = CombinedData()
         combinedData.setValueFormatter { value, entry, dataSetIndex, viewPortHandler ->
             String.format(
-                    "%,d %s",
-                    if (value > 1000f) (value / 1000f).toInt() else value.toInt(),
-                    if (value > 1000f) "k" else ""
+                "%,d %s",
+                if (value > 1000f) (value / 1000f).toInt() else value.toInt(),
+                if (value > 1000f) "k" else ""
             )
         }
         randomPFChart.description.text = "Random"
@@ -136,15 +136,22 @@ class MainActivity : AppCompatActivity() {
             myWayList[i].execute(referenceStrings.toList())
             myWayTime.stop()
             Log.e(TAG, "fifoList ${fifoList[i].pageFaults} ${fifoList[i].writeDisk} ${fifoList[i].interrupt}")
-            Log.e(TAG, "optimalList ${optimalList[i].pageFaults} ${optimalList[i].writeDisk} ${optimalList[i].interrupt}")
             Log.e(
-                    TAG,
-                    "enhancedSecondChanceList ${enhancedSecondChanceList[i].pageFaults} ${enhancedSecondChanceList[i].writeDisk} ${enhancedSecondChanceList[i].interrupt}"
+                TAG,
+                "optimalList ${optimalList[i].pageFaults} ${optimalList[i].writeDisk} ${optimalList[i].interrupt}"
+            )
+            Log.e(
+                TAG,
+                "enhancedSecondChanceList ${enhancedSecondChanceList[i].pageFaults} ${enhancedSecondChanceList[i].writeDisk} ${enhancedSecondChanceList[i].interrupt}"
             )
             Log.e(TAG, "myWayTime ${myWayList[i].pageFaults} ${myWayList[i].writeDisk} ${myWayList[i].interrupt}")
         }
         totalTime.stop()
-        val lines = hashMapOf("PF" to ArrayList<ILineDataSet>(), "Interrupt" to ArrayList<ILineDataSet>(), "RD" to ArrayList<ILineDataSet>())
+        val lines = hashMapOf(
+            "PF" to ArrayList<ILineDataSet>(),
+            "Interrupt" to ArrayList<ILineDataSet>(),
+            "RD" to ArrayList<ILineDataSet>()
+        )
         var pd = 0
         var rd = 0
         var interrupt = 0
@@ -188,7 +195,7 @@ class MainActivity : AppCompatActivity() {
         val startIndex = random.nextInt(referenceStrings.size - pickSize)
         val list: MutableList<Page> = ArrayList()
         for (i in 1..loopCount)
-            list.add(Page(referenceStrings[random.nextInt(startIndex + pickSize + 1)], random.nextBoolean()))
+            list.add(Page(referenceStrings[random.nextInt(pickSize + 1) + startIndex], random.nextBoolean()))
         val randomIndex = random.nextInt(referenceStrings.size)
         list.add(Page(referenceStrings[randomIndex], random.nextBoolean()))
         return list
@@ -204,10 +211,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateData(
-            iLineDataSetList: Map<String, ArrayList<ILineDataSet>>,
-            PFChart: LineChart,
-            RDChart: LineChart,
-            InterruptChart: LineChart
+        iLineDataSetList: Map<String, ArrayList<ILineDataSet>>,
+        PFChart: LineChart,
+        RDChart: LineChart,
+        InterruptChart: LineChart
     ) {
         PFChart.data = LineData(iLineDataSetList["PF"])
         PFChart.notifyDataSetChanged()
