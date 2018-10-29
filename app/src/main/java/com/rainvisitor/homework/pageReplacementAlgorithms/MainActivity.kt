@@ -64,18 +64,24 @@ class MainActivity : AppCompatActivity() {
                 if (value > 1000f) "k" else ""
             )
         }
-        randomPFChart.description.text = "Random"
+        randomPFChart.description.text = "Random Page Fault"
         randomPFChart.description.textSize = 16f
-        localityPFChart.description.text = "Locality"
+        localityPFChart.description.text = "Locality Page Fault"
         localityPFChart.description.textSize = 16f
-        mySelectPFChart.description.text = "MySelect"
+        mySelectPFChart.description.text = "MySelect Page Fault"
         mySelectPFChart.description.textSize = 16f
-        randomRDChart.description.text = "Random"
+        randomRDChart.description.text = "Random Disk I/O"
         randomRDChart.description.textSize = 16f
-        localityRDChart.description.text = "Locality"
+        localityRDChart.description.text = "Locality Disk I/O"
         localityRDChart.description.textSize = 16f
-        mySelectRDChart.description.text = "MySelect"
+        mySelectRDChart.description.text = "MySelect Disk I/O"
         mySelectRDChart.description.textSize = 16f
+        randomInterruptChart.description.text = "Random Interrupt"
+        randomInterruptChart.description.textSize = 16f
+        localityInterruptChart.description.text = "Locality Interrupt"
+        localityInterruptChart.description.textSize = 16f
+        mySelectInterruptChart.description.text = "MySelect Interrupt"
+        mySelectInterruptChart.description.textSize = 16f
         progressBar.visibility = View.VISIBLE
         Thread {
             val referenceStringsTime = Timer("referenceStringsTime")
@@ -88,7 +94,12 @@ class MainActivity : AppCompatActivity() {
                 referenceStrings.add(Page(i, random.nextBoolean()))
             }*/
             referenceStringsTime.stop()
-            updateData(execute(referenceStrings), randomPFChart, randomRDChart, randomInterruptChart)
+            updateData(
+                execute(ReferenceType.Random, referenceStrings),
+                randomPFChart,
+                randomRDChart,
+                randomInterruptChart
+            )
             referenceStrings.clear()
             val pickSize = random.nextInt(25 + 1) + 25
             val maxCount = random.nextInt(500 + 1) + 500
@@ -96,20 +107,33 @@ class MainActivity : AppCompatActivity() {
                 referenceStrings.addAll(locality(pickSize, maxCount))
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
             }
-            updateData(execute(referenceStrings), localityPFChart, localityRDChart, localityInterruptChart)
+            updateData(
+                execute(ReferenceType.Locality, referenceStrings),
+                localityPFChart,
+                localityRDChart,
+                localityInterruptChart
+            )
             referenceStrings.clear()
             while (true) {
                 referenceStrings.addAll(mySelect())
                 if (referenceStrings.size >= REFERENCE_MAX_SIZE) break
             }
-            updateData(execute(referenceStrings), mySelectPFChart, mySelectRDChart, mySelectInterruptChart)
+            updateData(
+                execute(ReferenceType.MySelect, referenceStrings),
+                mySelectPFChart,
+                mySelectRDChart,
+                mySelectInterruptChart
+            )
             runOnUiThread {
                 progressBar.visibility = View.GONE
             }
         }.start()
     }
 
-    private fun execute(referenceStrings: ArrayList<Page>): Map<String, ArrayList<ILineDataSet>> {
+    private fun execute(
+        referenceType: ReferenceType,
+        referenceStrings: ArrayList<Page>
+    ): Map<String, ArrayList<ILineDataSet>> {
         val fifoList = ArrayList<FIFO>()
         val optimalList = ArrayList<Optimal>()
         val enhancedSecondChanceList = ArrayList<EnhancesSecondChance>()
@@ -165,7 +189,7 @@ class MainActivity : AppCompatActivity() {
         }
         runOnUiThread {
             textTitle.append("\n${pd} ${rd} ${interrupt}")
-            itemAdapter.append(fifoList, optimalList, enhancedSecondChanceList, myWayList)
+            itemAdapter.append(referenceType, fifoList, optimalList, enhancedSecondChanceList, myWayList)
         }
         lines["PF"]?.add(getPFData(fifoList))
         lines["PF"]?.add(getPFData(optimalList))

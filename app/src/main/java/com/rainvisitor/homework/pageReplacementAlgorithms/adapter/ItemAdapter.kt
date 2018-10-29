@@ -14,6 +14,7 @@ import kotlinx.android.synthetic.main.item.view.*
 class ItemAdapter(
         private val context: Context) : RecyclerView.Adapter<ItemAdapter.ViewHolder>() {
 
+    private val referenceTypeList: ArrayList<ReferenceType> = ArrayList()
     private val dataTypeList: ArrayList<DataType> = ArrayList()
     private val fifoList: ArrayList<MutableList<FIFO>> = ArrayList()
     private val optimalList: ArrayList<MutableList<Optimal>> = ArrayList()
@@ -34,21 +35,24 @@ class ItemAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
-        holder.bindView(context, dataTypeList[position], fifoList[position], optimalList[position], escList[position], myWayList[position])
+        holder.bindView(context, referenceTypeList[position], dataTypeList[position], fifoList[position], optimalList[position], escList[position], myWayList[position])
     }
 
-    fun append(fifo: ArrayList<FIFO>, optimal: ArrayList<Optimal>, esc: ArrayList<EnhancesSecondChance>, myWay: ArrayList<MyWay>) {
+    fun append(referenceType: ReferenceType,fifo: ArrayList<FIFO>, optimal: ArrayList<Optimal>, esc: ArrayList<EnhancesSecondChance>, myWay: ArrayList<MyWay>) {
         dataTypeList.add(DataType.PageFault)
+        referenceTypeList.add(referenceType)
         fifoList.add(fifo)
         optimalList.add(optimal)
         escList.add(esc)
         myWayList.add(myWay)
         dataTypeList.add(DataType.DiskIO)
+        referenceTypeList.add(referenceType)
         fifoList.add(fifo)
         optimalList.add(optimal)
         escList.add(esc)
         myWayList.add(myWay)
         dataTypeList.add(DataType.Interrupt)
+        referenceTypeList.add(referenceType)
         fifoList.add(fifo)
         optimalList.add(optimal)
         escList.add(esc)
@@ -57,9 +61,9 @@ class ItemAdapter(
     }
 
     class ViewHolder(val mView: View) : RecyclerView.ViewHolder(mView) {
-        fun bindView(context: Context,
+        fun bindView(context: Context,referenceType: ReferenceType,
                      dataType: DataType, fifo: MutableList<FIFO>, optimal: MutableList<Optimal>, esc: MutableList<EnhancesSecondChance>, myWay: MutableList<MyWay>) {
-            mView.textTitle.text = dataType.name
+            mView.textTitle.text = "${referenceType.name} ${dataType.name}"
             mView.recyclerViewSubItem.adapter = SubItemAdapter(context, dataType, fifo, optimal, esc, myWay)
             mView.recyclerViewSubItem.layoutManager = LinearLayoutManager(context)
         }
